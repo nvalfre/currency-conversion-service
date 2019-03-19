@@ -16,7 +16,7 @@ import java.util.Map;
 public class CurrencyConversionController {
 
     @Autowired
-    private Environment environment;
+    private CurrencyExchangeServiceProxy currencyExchangeServiceProxy;
 
     @GetMapping("/currency-converter/from/{from}/to/{to}/quantity/{quantity}")
     public CurrencyConversionBean converCurrency(@PathVariable String from,@PathVariable String to, @PathVariable BigDecimal quantity){
@@ -29,6 +29,22 @@ public class CurrencyConversionController {
                 , CurrencyConversionBean.class, uriVariables);
 
         CurrencyConversionBean currencyConversionBean = responseEntity.getBody();
+
+        BigDecimal conversionMultiple = currencyConversionBean.getConversionMultiple();
+
+        CurrencyConversionBean currencyConversionBeanTransformed = new CurrencyConversionBean(
+                currencyConversionBean.getId(), from, to,
+                conversionMultiple,
+                quantity,
+                quantity.multiply(conversionMultiple),
+                0);
+
+        return currencyConversionBeanTransformed;
+    }
+
+    @GetMapping("/currency-converter/from/{from}/to/{to}/quantity/{quantity}/proxy")
+    public CurrencyConversionBean converCurrencyProxy(@PathVariable String from,@PathVariable String to, @PathVariable BigDecimal quantity){
+                CurrencyConversionBean currencyConversionBean = currencyExchangeServiceProxy.retrieveExchangeValue(from,to);
 
         BigDecimal conversionMultiple = currencyConversionBean.getConversionMultiple();
 
